@@ -1,0 +1,60 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs`
+
+Table users {
+  id integer [primary key]
+  fullname varchar
+  username varchar
+  email varchar
+  created_at timestamp
+  update_at timestamp
+  delete_at timestamp
+}
+
+Table posts {
+  id integer [primary key]
+  user_id integer
+  content text
+  image_url varchar
+  created_at timestamp
+  update_at timestamp
+  delete_at timestamp
+}
+
+Table likes {
+  id integer [primary key]
+  user_id integer
+  post_id integer
+  created_at timestamp
+  update_at timestamp
+  delete_at timestamp
+}
+
+Table comments {
+  id integer [primary key]
+  post_id integer
+  user_id integer
+  comments text
+  created_at timestamp
+  update_at timestamp
+  delete_at timestamp
+}
+
+Table messages {
+  id integer [primary key]
+  sender_id integer
+  receiver_id integer
+  message_content text
+  created_at timestamp
+  update_at timestamp
+  delete_at timestamp
+}
+
+
+Ref: users.id < posts.user_id // many to one
+Ref: users.id < likes.user_id // many to one
+Ref: users.id < comments.user_id // many to one
+Ref: users.id < messages.sender_id // many to one
+
+Ref: posts.id < likes.post_id // many to one
+Ref: posts.id < comments.post_id // many to one
