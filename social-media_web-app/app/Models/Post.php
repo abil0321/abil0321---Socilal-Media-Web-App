@@ -13,12 +13,16 @@ class Post extends Model
     protected $table = 'posts';
     protected $fillable = ['user_id', 'content', 'image_url'];
 
-    public function comment():HasMany
+    public function user():BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function comments():HasMany
     {
         return $this->hasMany(Comment::class, 'post_id')->orderBy('updated_at', 'desc');
     }
 
-    public function like():HasMany
+    public function likes():HasMany
     {
         return $this->hasMany(Like::class, 'post_id')->orderBy('created_at', 'desc');
     }

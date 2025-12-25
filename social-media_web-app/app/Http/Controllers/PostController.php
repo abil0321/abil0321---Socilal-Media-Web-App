@@ -8,12 +8,22 @@ use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class PostController extends Controller
 {
     public function index()
     {
-        $post = Post::orderBy('created_at', 'desc')->get();
+        $post = Post::with([
+            // NOTE: User: WAJIB tambah 'id' (Primary Key tabel users) - butuh relasi penghubungnya
+            'user:id,name,created_at',
+
+            // NOTE: WAJIB tambah 'post_id' (Penghubung ke Post) & 'id' - butuh relasi penghubungnya
+            'comments:post_id,content,user_id',
+            'likes:post_id,user_id',
+        ])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
             'status' => 200,
@@ -24,8 +34,8 @@ class PostController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $user = JWTAuth::parseToken()->authenticate();
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
             'content' => 'required|string|max:255',
             'image_url' => 'nullable',
         ]);
@@ -37,7 +47,7 @@ class PostController extends Controller
         }
 
         $post = Post::create([
-            'user_id' => $request->input('user_id'),
+            'user_id' => $user->id,
             'content' => $request->input('content'),
             'image_url' => $request->input('image_url'),
         ]);
@@ -51,7 +61,7 @@ class PostController extends Controller
 
     public function show($id)
     {
-        $post = Post::with(['comment', 'like'])->findOrFail($id);
+        $post = Post::with(['comments', 'likes'])->findOrFail($id);
 
         return response()->json([
             'status' => 200,
@@ -99,8 +109,8 @@ class PostController extends Controller
     // SECTION: Comments
     public function commentPost(Request $request)
     {
+        $user = JWTAuth::parseToken()->authenticate();
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
             'post_id' => 'required',
             'content' => 'required|string|max:255',
         ]);
@@ -113,7 +123,7 @@ class PostController extends Controller
         }
 
         $comment = Comment::create([
-            'user_id' => $request->input('user_id'),
+            'user_id' => $user->id,
             'post_id' => $request->input('post_id'),
             'content' => $request->input('content'),
         ]);
@@ -138,8 +148,8 @@ class PostController extends Controller
     // SECTION: Likes
     public function likePost(Request $request)
     {
+        $user = JWTAuth::parseToken()->authenticate();
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
             'post_id' => 'required',
         ]);
 
@@ -151,22 +161,21 @@ class PostController extends Controller
         }
 
         // NOTE: Check if the user has already liked the post
-        $isAlreadyLike = Like::where('user_id', $request->input('user_id'))
+        $likes = Like::where('user_id', $user->id)
         ->where('post_id', $request->input('post_id'))
         ->first();
-        unset($isAlreadyLike->deleted_at);
-
-        if (!$isAlreadyLike) {
+        if (!$likes) {
             $likes = Like::create([
-                'user_id' => $request->input('user_id'),
+                'user_id' => $user->id,
                 'post_id' => $request->input('post_id'),
             ]);
         }
+        unset($likes->deleted_at);
 
         return response()->json([
             'status' => 200,
             'message' => 'Berhasil Like Post',
-            'data' => $likes ?? $isAlreadyLike,
+            'data' => $likes,
         ]);
     }
 
