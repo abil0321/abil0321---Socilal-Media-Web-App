@@ -1,0 +1,182 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Comment;
+use App\Models\Like;
+use App\Models\Post;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+class PostController extends Controller
+{
+    public function index()
+    {
+        $post = Post::orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'sukses',
+            'data' => $post,
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'content' => 'required|string|max:255',
+            'image_url' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors(),
+            ], 400);
+        }
+
+        $post = Post::create([
+            'user_id' => $request->input('user_id'),
+            'content' => $request->input('content'),
+            'image_url' => $request->input('image_url'),
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Berhasil membuat post baru',
+            'data' => $post,
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $post = Post::with(['comment', 'like'])->findOrFail($id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Berhasil mendapatkan data',
+            'data' => $post,
+        ]);
+    }
+
+    public function update($id, Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'content' => 'nullable|string|max:255',
+            'image_url' => 'nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors(),
+            ], 400);
+        }
+
+        $post = Post::findOrFail($id);
+        $post->content = $request->input('content');
+        $post->image_url = $request->input('image_url');
+
+        $post->save();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Berhasil memperbarui data',
+            'data' => $post,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        Post::destroy($id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Post berhasil dihapus',
+        ]);
+    }
+
+    // SECTION: Comments
+    public function commentPost(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'post_id' => 'required',
+            'content' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => $validator->errors(),
+            ], 400);
+        }
+
+        $comment = Comment::create([
+            'user_id' => $request->input('user_id'),
+            'post_id' => $request->input('post_id'),
+            'content' => $request->input('content'),
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Berhasil menambahkan komentar',
+            'data' => $comment,
+        ]);
+    }
+
+    public function RemoveCommentPost($id)
+    {
+        Comment::destroy($id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Komentar berhasil dihapus',
+        ]);
+    }
+
+    // SECTION: Likes
+    public function likePost(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'post_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => $validator->errors(),
+            ]);
+        }
+
+        // NOTE: Check if the user has already liked the post
+        $isAlreadyLike = Like::where('user_id', $request->input('user_id'))
+        ->where('post_id', $request->input('post_id'))
+        ->first();
+        unset($isAlreadyLike->deleted_at);
+
+        if (!$isAlreadyLike) {
+            $likes = Like::create([
+                'user_id' => $request->input('user_id'),
+                'post_id' => $request->input('post_id'),
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Berhasil Like Post',
+            'data' => $likes ?? $isAlreadyLike,
+        ]);
+    }
+
+    public function unlikePost($id)
+    {
+        Like::destroy($id);
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Like berhasil dihapus',
+        ]);
+    }
+}
