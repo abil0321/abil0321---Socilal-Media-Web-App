@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\JWTAuthController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
+use App\Http\Middleware\JWTMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,8 +12,13 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('v1')->group(function () {
+
+    //* ANCHOR: Authentication
+    Route::post('/register', [JWTAuthController::class, 'register'])->name('auth.register');
+    Route::post('/login', [JWTAuthController::class, 'login'])->name('auth.login');
+
     // * ANCHOR: Posts Business Routes
-    Route::prefix('posts')->group(function () {
+    Route::middleware([JWTMiddleware::class])->prefix('posts')->group(function () {
         Route::get('/', [PostController::class, 'index'])->name('posts.index');
         Route::post('/', [PostController::class, 'store'])->name('posts.store');
         Route::get('{id}', [PostController::class, 'show'])->name('posts.show');
@@ -32,9 +39,10 @@ Route::prefix('v1')->group(function () {
     });
 
     // * ANCHOR: Message Business Routes
-    Route::prefix('message')->group(function () {
-        Route::get('{user_id}', [MessageController::class, 'show'])->name('message.show');
-        Route::post('{user_id}', [MessageController::class, 'send'])->name('message.send');
-        Route::delete('{message_id}', [MessageController::class, 'delete'])->name('message.delete');
+    Route::middleware(JWTMiddleware::class)->prefix('message')->group(function () {
+        Route::post('/', [MessageController::class, 'store'])->name('message.send');
+        Route::get('{id}', [MessageController::class, 'show'])->name('message.show');
+        Route::get('/getMessage/{user_id}', [MessageController::class, 'showByUser'])->name('message.show_by_user');
+        Route::delete('{id}', [MessageController::class, 'destroy'])->name('message.delete');
     });
 });
