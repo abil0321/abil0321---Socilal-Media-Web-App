@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\JWTAuthController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\PostController;
+use App\Http\Controllers\Api\V1\JWTAuthController;
+use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\PostController;
 use App\Http\Middleware\JWTMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
