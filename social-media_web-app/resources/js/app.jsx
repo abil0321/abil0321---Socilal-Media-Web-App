@@ -13,6 +13,7 @@ createInertiaApp({
         resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob("./Pages/**/*.jsx")
+            // Ensure glob picks up new files
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);

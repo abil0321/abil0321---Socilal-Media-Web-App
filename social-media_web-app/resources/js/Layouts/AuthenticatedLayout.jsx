@@ -13,7 +13,9 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div
+            className="min-h-screen bg-gray-100 dark:bg-gray-900 overflow-y-auto h-screen" // Pastikan ada h-screen & overflow-y-auto
+        >
             <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -30,6 +32,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     active={route().current("dashboard")}
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route("home.index")}
+                                    active={route().current("home.index")}
+                                >
+                                    Home
                                 </NavLink>
                             </div>
                         </div>
@@ -65,7 +73,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <Dropdown.Link
                                             href={route("profile.edit")}
                                         >
-                                            Profile
+                                            Edit Profile
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
+                                            href={route("profile.content")}
+                                        >
+                                            My Profile
                                         </Dropdown.Link>
 
                                         <Dropdown.Link
@@ -136,7 +149,16 @@ export default function AuthenticatedLayout({ header, children }) {
                         <ResponsiveNavLink
                             href={route("dashboard")}
                             active={route().current("dashboard")}
-                        ></ResponsiveNavLink>
+                        >
+                            Dashboard
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink
+                            href={route("home.index")}
+                            active={route().current("home.index")}
+                        >
+                            Home
+                        </ResponsiveNavLink>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4 dark:border-gray-600">
@@ -150,8 +172,17 @@ export default function AuthenticatedLayout({ header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route("profile.edit")}>
-                                Profile
+                            <ResponsiveNavLink
+                                href={route("profile.edit")}
+                                active={route().current("profile.edit")}
+                            >
+                                Edit Profile
+                            </ResponsiveNavLink>
+                            <ResponsiveNavLink
+                                href={route("profile.content")}
+                                active={route().current("profile.content")}
+                            >
+                                My Profile
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 method="post"

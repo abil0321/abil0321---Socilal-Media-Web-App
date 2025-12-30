@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Post;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,5 +60,26 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function posts(Request $request)
+    {
+        $posts = Post::with('user')
+            ->where('user_id', $request->user()->id)
+            ->orderBy('id', 'desc')
+            ->cursorPaginate(5);
+
+        if ($request->wantsJson()) {
+            return response()->json(
+                array_merge($posts->toArray(), [
+                    'something' => 'Ini data tambahan saya',
+                    'status_user' => 'Aktif',
+                ])
+            );
+        }
+
+        return Inertia::render('Profile/Content', [
+            'initialPosts' => $posts,
+        ]);
     }
 }
