@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Controller;
 use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
@@ -162,8 +163,8 @@ class PostController extends Controller
 
         // NOTE: Check if the user has already liked the post
         $likes = Like::where('user_id', $user->id)
-        ->where('post_id', $request->input('post_id'))
-        ->first();
+            ->where('post_id', $request->input('post_id'))
+            ->first();
         if (!$likes) {
             $likes = Like::create([
                 'user_id' => $user->id,
